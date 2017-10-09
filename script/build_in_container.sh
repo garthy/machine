@@ -4,12 +4,19 @@ set -e
 
 DOCKER_IMAGE_NAME="docker-machine-build"
 DOCKER_CONTAINER_NAME="docker-machine-build-container"
+DOCKER_BUILD_ARGS=${DOCKER_BUILD_ARGS:-""}
 
 if [[ $(docker ps -a | grep $DOCKER_CONTAINER_NAME) != "" ]]; then
   docker rm -f $DOCKER_CONTAINER_NAME 2>/dev/null
 fi
 
-docker build -t $DOCKER_IMAGE_NAME .
+
+if [ -z ${DOCKER_USE_HTTP_PROXY} ]; then
+   DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --build-arg http_proxy --build-arg https_proxy --build-arg no_proxy"
+fi
+
+echo ${DOCKER_BUILD_ARGS}
+docker build ${DOCKER_BUILD_ARGS} -t $DOCKER_IMAGE_NAME .
 
 docker run --name $DOCKER_CONTAINER_NAME \
   -e DEBUG \
